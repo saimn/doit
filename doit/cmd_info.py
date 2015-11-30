@@ -10,7 +10,6 @@ from .cmd_base import DoitCmdBase
 from .exceptions import InvalidCommand
 
 
-
 def my_safe_repr(obj, context, maxlevels, level):
     """pretty print supressing unicode prefix
 
@@ -28,7 +27,7 @@ opt_show_execute_status = {
     'short': 's',
     'long': 'status',
     'type': bool,
-    'default': False,
+    'default': True,
     'help': """Shows reasons why this task would be executed.
  [default: %(default)s]"""
 }
@@ -43,7 +42,7 @@ class Info(DoitCmdBase):
 
     cmd_options = (opt_show_execute_status, )
 
-    def _execute(self, pos_args, show_execute_status=False):
+    def _execute(self, pos_args, show_execute_status=True):
         if len(pos_args) != 1:
             msg = ('doit info failed, must select *one* task.'
                    '\nCheck `doit help info`.')
@@ -58,31 +57,40 @@ class Info(DoitCmdBase):
 
         task = tasks[task_name]
         task_attrs = (
-            'name', 'file_dep', 'task_dep', 'setup_tasks', 'calc_dep',
-            'targets',
+            'file_dep', 'task_dep', 'setup_tasks', 'calc_dep', 'targets',
             # these fields usually contains reference to python functions
             # 'actions', 'clean', 'uptodate', 'teardown', 'title'
             'getargs', 'params', 'verbosity', 'watch'
         )
+
+        self.outstream.write('\n{}\n'.format(task.name))
+        if task.doc:
+            self.outstream.write('\n{}\n'.format(task.doc))
+
+        # print reason task is not up-to-date
+        retcode = 0
+        if show_execute_status and self.dep_manager is not None:
+            status = self.dep_manager.get_status(task, tasks, get_log=True)
+            self.outstream.write('\n{:11s}: {}\n'
+                                 .format('status', status.status))
+            if status.status != 'up-to-date':
+                # status.status == 'run' or status.status == 'error'
+                self.outstream.write(self.get_reasons(status.reasons))
+                self.outstream.write('\n')
+                retcode = 1
+
         for attr in task_attrs:
             value = getattr(task, attr)
             # by default only print fields that have non-empty value
             if value:
-                self.outstream.write('\n{0}:'.format(attr))
-                printer.pprint(getattr(task, attr))
+                self.outstream.write('\n{:11s}:\n'.format(attr))
+                try:
+                    for val in value:
+                        self.outstream.write(' - {}\n'.format(val))
+                except:
+                    printer.pprint(getattr(task, attr))
 
-        # print reason task is not up-to-date
-        if show_execute_status:
-            status = self.dep_manager.get_status(task, tasks, get_log=True)
-            if status.status == 'up-to-date':
-                self.outstream.write('\nTask is up-to-date.\n')
-                return 0
-            else:  # status.status == 'run' or status.status == 'error'
-                self.outstream.write('\nTask is not up-to-date:\n')
-                self.outstream.write(self.get_reasons(status.reasons))
-                self.outstream.write('\n')
-                return 1
-
+        return retcode
 
     @staticmethod
     def get_reasons(reasons):
