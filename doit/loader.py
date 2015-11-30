@@ -173,8 +173,8 @@ def _get_task_creators(namespace, command_names):
     for name, ref in six.iteritems(namespace):
 
         # function is a task creator because of its name
-        if ((inspect.isfunction(ref) or inspect.ismethod(ref)) and
-            name.startswith(TASK_STRING)):
+        if name.startswith(TASK_STRING) and (
+                inspect.isfunction(ref) or inspect.ismethod(ref)):
             # remove TASK_STRING prefix from name
             task_name = name[prefix_len:]
 
