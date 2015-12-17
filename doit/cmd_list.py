@@ -66,13 +66,11 @@ class List(DoitCmdBase):
     cmd_options = (opt_listall, opt_list_quiet, opt_list_status,
                    opt_list_private, opt_list_dependencies, opt_template)
 
-
-    STATUS_MAP = {'ignore': 'I', 'up-to-date': 'U', 'run': 'R'}
-
+    STATUS_MAP = {'ignore': 'I', 'up-to-date': 'U', 'run': 'R', 'error': 'E'}
 
     def _print_task(self, template, task, status, list_deps, tasks):
         """print a single task"""
-        line_data = {'name': task.name, 'doc':task.doc}
+        line_data = {'name': task.name, 'doc': task.doc}
         # FIXME group task status is never up-to-date
         if status:
             # FIXME: 'ignore' handling is ugly
