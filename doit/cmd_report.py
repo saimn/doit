@@ -2,9 +2,8 @@
 
 from __future__ import division, print_function
 
-from collections import defaultdict
-from .cmd_base import DoitCmdBase
-from .cmd_base import subtasks_iter
+from collections import defaultdict, OrderedDict
+from .cmd_base import DoitCmdBase, check_tasks_exist, subtasks_iter
 
 opt_html = {
     'name': 'html',
@@ -24,15 +23,11 @@ opt_bar_length = {
     'help': "Progrees bar length"
     }
 
-BAR_SYMBOL = u'█'
-
 # The background is set with 40 plus the number of the color, and the
 # foreground with 30
+RESET_SEQ = u'\033[0m'
 BLACK, RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, WHITE = [
     u'\33[0;%dm' % (40 + i) for i in range(8)]
-# These are the sequences need to get colored ouput
-RESET_SEQ = u'\033[0m'
-BOLD_SEQ = u'\033[1m'
 
 
 def generate_ascii_bar(stat, bar_length):
@@ -53,26 +48,33 @@ def generate_ascii_bar(stat, bar_length):
 
 def generate_html_bar(stat, bar_length):
     ratio = int(round(stat['up-to-date'] / stat['total']))
+    style = 'border-radius: 5px; height:15px; '
     return """
-<div style="background-color:#ccc; border-radius: 5px; height:15px; width: {}px">
-<div style="background-color:#337ab7; border-radius: 5px; height:15px; width: {}px"></div>
-</div>""".format(5*bar_length, int(round(5*bar_length*ratio)))
+<div style="background-color:#ccc; width: {0}px; {2}">
+<div style="background-color:#337ab7; width: {1}px; {2}"></div>
+</div>""".format(5*bar_length, int(round(5*bar_length*ratio)), style)
 
 
 class Report(DoitCmdBase):
     name = "report"
     doc_purpose = "Reports the status of tasks and subtasks"
-    doc_usage = ""
+    doc_usage = "[TASK ...]"
     cmd_options = (opt_html, opt_bar_length)
     doc_description = """
 """
 
     def _execute(self, html=None, bar_length=20, pos_args=None):
         from astropy.table import Table
-        # dict of all tasks
         tasks = dict([(t.name, t) for t in self.task_list])
-        task_list = self.task_list
-        stat = {}
+
+        if pos_args:
+            # list only tasks passed on command line
+            check_tasks_exist(tasks, pos_args)
+            task_list = [tasks[name] for name in pos_args]
+        else:
+            task_list = self.task_list
+
+        stat = OrderedDict()
 
         for task in task_list:
             if task.has_subtask:
