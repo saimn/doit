@@ -22,6 +22,7 @@ from .cmd_dumpdb import DumpDB
 from .cmd_strace import Strace
 from .cmd_completion import TabCompletion
 from .cmd_resetdep import ResetDep
+from .cmd_report import Report
 
 
 # used to save variable values passed from command line
@@ -48,7 +49,7 @@ class DoitMain(object):
     # core doit commands
     BIN_NAME = sys.argv[0].split('/')[-1]
     DOIT_CMDS = (Help, Run, List, Info, Clean, Forget, Ignore, Auto, DumpDB,
-                 Strace, TabCompletion, ResetDep)
+                 Strace, TabCompletion, ResetDep, Report)
 
     def __init__(self, task_loader=None,
                  config_filenames='doit.cfg',
