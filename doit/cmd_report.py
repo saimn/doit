@@ -3,6 +3,7 @@
 from __future__ import division, print_function
 
 from collections import defaultdict, OrderedDict
+from datetime import datetime
 from .cmd_base import DoitCmdBase, check_tasks_exist, subtasks_iter
 
 opt_html = {
@@ -47,7 +48,7 @@ def generate_ascii_bar(stat, bar_length):
 
 
 def generate_html_bar(stat, bar_length):
-    ratio = int(round(stat['up-to-date'] / stat['total']))
+    ratio = stat['up-to-date'] / stat['total']
     style = 'border-radius: 5px; height:15px; '
     return """
 <div style="background-color:#ccc; width: {0}px; {2}">
@@ -111,6 +112,10 @@ class Report(DoitCmdBase):
                 'js': """
 document.onreadystatechange = function () {
     if (document.readyState == 'complete') {
+        document.title = 'Doit HTML report';
+        var title = document.createElement('h1');
+        title.innerHTML = 'Report generated on %s';
+        document.body.insertBefore(title, document.getElementById('progress'));
         Array.prototype.forEach.call(
             document.querySelectorAll('#progress td:nth-child(6)'),
             function(el) {
@@ -119,7 +124,7 @@ document.onreadystatechange = function () {
         );
     }
 }
-"""
+""" % datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             }
 
             t.write(html, format='html', htmldict=htmldict)
