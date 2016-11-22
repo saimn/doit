@@ -155,6 +155,7 @@ class Task(object):
                   'getargs': ((dict,), ()),
                   'title': ((types.FunctionType,), (None,)),
                   'watch': ((list, tuple), ()),
+                  'delay': ((float, int), (None, )),
     }
 
 
@@ -164,7 +165,7 @@ class Task(object):
                  subtask_of=None, has_subtask=False,
                  doc=None, params=(), pos_arg=None,
                  verbosity=None, title=None, getargs=None,
-                 watch=(), loader=None):
+                 watch=(), loader=None, delay=None):
         """sanity checks and initialization
 
         @param params: (list of dict for parameters) see cmdparse.CmdOption
@@ -190,6 +191,7 @@ class Task(object):
         self.check_attr(name, 'getargs', getargs, self.valid_attr['getargs'])
         self.check_attr(name, 'title', title, self.valid_attr['title'])
         self.check_attr(name, 'watch', watch, self.valid_attr['watch'])
+        self.check_attr(name, 'delay', delay, self.valid_attr['delay'])
 
         if '=' in name:
             msg = "Task '{}': name must not use the char '=' (equal sign)."
@@ -245,6 +247,7 @@ class Task(object):
         self.watch = watch
         # just indicate if actions were executed at all
         self.executed = False
+        self.delay = delay
 
 
     def _init_deps(self, file_dep, task_dep, calc_dep):
