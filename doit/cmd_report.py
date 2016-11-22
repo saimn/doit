@@ -127,7 +127,7 @@ document.onreadystatechange = function () {
 """ % datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             }
 
-            t.write(html, format='html', htmldict=htmldict)
+            t.write(html, format='html', htmldict=htmldict, overwrite=True)
         else:
             print(t)
             # self.outstream.write(str(t).decode('utf8') + '\n')
