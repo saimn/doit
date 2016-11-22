@@ -16,7 +16,10 @@ result_dep # pyflakes
 # action
 def create_folder(dir_path):
     """create a folder in the given path if it doesnt exist yet."""
-    os.makedirs(dir_path, exist_ok=True)
+    try:
+        os.makedirs(dir_path)
+    except OSError:
+        pass
 
 
 # title
